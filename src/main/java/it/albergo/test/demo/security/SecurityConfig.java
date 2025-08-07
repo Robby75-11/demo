@@ -53,13 +53,13 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(http->http
                 // Auth endpoints pubblici
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/songs").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/lyrics/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/lyrics/{id}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/lyrics/song/**").permitAll()
               //.requestMatchers(HttpMethod.GET, "/api/deezer/search").permitAll() // ✅ Per importare canzoni da frontend
                 // Endpoints protetti da ruolo USER o ADMIN
                 .requestMatchers(HttpMethod.GET, "/api/quiz/brani/**").hasAnyRole("USER", "ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/quiz/testi/**").hasAnyRole("USER", "ADMIN")
-                .requestMatchers(HttpMethod.POST,"/api/lyrics/fetch").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/lyrics/fetch").permitAll()
                 .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
                 // Tutto il resto richiede autenticazione
                 .anyRequest().authenticated()

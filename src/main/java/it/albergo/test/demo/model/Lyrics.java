@@ -20,6 +20,8 @@ public class Lyrics {
     @Column(name = "lyrics", columnDefinition = "TEXT")
     private String lyrics;
 
-    private Long songId;
+    @OneToOne
+    @JoinColumn(name = "song_id")
+    private Song song;
 }
 

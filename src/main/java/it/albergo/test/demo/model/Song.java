@@ -29,4 +29,8 @@ public class Song {
     private  String creatore;
     private Long deezerId;  // ✅ Mancava nel tuo codice
     private String preview;
+
+    @OneToOne(mappedBy = "song", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Lyrics lyrics;
 }
+

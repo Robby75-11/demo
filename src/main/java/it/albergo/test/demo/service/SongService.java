@@ -66,6 +66,11 @@ public class SongService {
                 .collect(Collectors.toList());
     }
 
+    public Song getSongEntityById(Long id) {
+        return songRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Canzone non trovata con ID: " + id));
+    }
+
     // 🔹 Convertitore da entity a DTO
     private SongResponseDto convertToDto(Song song) {
         SongResponseDto dto = new SongResponseDto();

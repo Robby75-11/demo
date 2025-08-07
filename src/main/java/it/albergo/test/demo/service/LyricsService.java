@@ -2,7 +2,9 @@ package it.albergo.test.demo.service;
 
 import it.albergo.test.demo.dto.LyricsRequest;
 import it.albergo.test.demo.model.Lyrics;
+import it.albergo.test.demo.model.Song;
 import it.albergo.test.demo.repository.LyricsRepository;
+import it.albergo.test.demo.repository.SongRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -12,6 +14,9 @@ import java.util.Map;
 
 @Service
 public class LyricsService {
+
+    @Autowired
+    private SongRepository songRepository;
 
     @Autowired
     private LyricsRepository lyricsRepository;
@@ -25,18 +30,21 @@ public class LyricsService {
     }
 
     public Lyrics getLyricsBySongId(Long songId) {
-        return lyricsRepository.findAll().stream()
-                .filter(l -> l.getSongId() != null && l.getSongId().equals(songId))
-                .findFirst()
-                .orElse(null);
+        return lyricsRepository.findBySong_Id(songId)
+                .orElseThrow(() -> new RuntimeException("Lyrics non trovate per la canzone con ID: " + songId));
     }
 
+
     public Lyrics createLyrics(LyricsRequest request) {
+        Song song = songRepository.findByDeezerId(request.getDeezerId())
+                .orElseThrow(() -> new RuntimeException("Canzone non trovata con Deezer ID: " + request.getDeezerId()));
+
         Lyrics lyrics = new Lyrics();
         lyrics.setArtist(request.getArtista());
         lyrics.setTitle(request.getTitolo());
         lyrics.setLyrics("Testo non disponibile");
-        lyrics.setSongId(request.getDeezerId());
+        lyrics.setSong(song); // ✅ Associa l'entità Song
+
         return lyricsRepository.save(lyrics);
     }
 
@@ -56,11 +64,15 @@ public class LyricsService {
             Map response = restTemplate.getForObject(url, Map.class);
             String testo = (String) response.get("lyrics");
 
+            // ✅ Recupera la canzone dal Deezer ID
+            Song song = songRepository.findByDeezerId(request.getDeezerId())
+                    .orElseThrow(() -> new RuntimeException("Canzone non trovata per deezerId: " + request.getDeezerId()));
+
             Lyrics lyrics = new Lyrics();
             lyrics.setArtist(artist);
             lyrics.setTitle(title);
             lyrics.setLyrics(testo);
-            lyrics.setSongId(request.getDeezerId());
+            lyrics.setSong(song); // ✅ Assegna la relazione con la canzone
 
             lyricsRepository.save(lyrics);
             return testo;

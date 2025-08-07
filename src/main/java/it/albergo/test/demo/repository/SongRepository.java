@@ -16,6 +16,6 @@ public interface SongRepository extends JpaRepository<Song, Long> {
 
     Optional<Song> findByTitoloAndArtista(String titolo, Artist artista);
 
-
+    Optional<Song> findByDeezerId(Long deezerId);
 
 }
