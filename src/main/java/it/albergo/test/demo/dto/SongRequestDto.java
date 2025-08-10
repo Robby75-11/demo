@@ -9,4 +9,5 @@ public class SongRequestDto {
     private String audioUrl;
     private String creatore;
     private Long artistaId;
+    private Long deezerId;
 }

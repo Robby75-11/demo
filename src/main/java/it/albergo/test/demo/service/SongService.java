@@ -37,7 +37,7 @@ public class SongService {
         song.setArtista(artistaOpt.get());
         song.setCoverImageUrl("https://via.placeholder.com/150"); // placeholder
         song.setPreview(request.getAudioUrl()); // Se preview = audioUrl
-
+        song.setDeezerId(request.getDeezerId());
         Song saved = songRepository.save(song);
 
         return convertToDto(saved);
@@ -66,6 +66,11 @@ public class SongService {
                 .collect(Collectors.toList());
     }
 
+    public Song getSongEntityByDeezerId(Long deezerId) {
+        return songRepository.findByDeezerId(deezerId)
+                .orElse(null);
+    }
+
     public Song getSongEntityById(Long id) {
         return songRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Canzone non trovata con ID: " + id));
@@ -81,6 +86,7 @@ public class SongService {
         dto.setCoverImageUrl(song.getCoverImageUrl());
         dto.setArtista(song.getArtista().getNome());
         dto.setCreatore("admin"); // opzionale
+        dto.setDeezerId(song.getDeezerId());
         return dto;
     }
 }

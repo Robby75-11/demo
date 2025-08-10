@@ -30,6 +30,7 @@ public class SecurityConfig {
 
     @Autowired
     private JwtTool jwtTool;
+
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
 
@@ -44,42 +45,37 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.formLogin(http->http.disable());
-        httpSecurity.csrf(http->http.disable());
-        httpSecurity.sessionManagement(http->http.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        httpSecurity.cors(Customizer.withDefaults());
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.formLogin(form -> form.disable());
+        http.csrf(csrf -> csrf.disable());
+        http.sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.cors(Customizer.withDefaults());
 
-        httpSecurity.authorizeHttpRequests(http->http
-                // Auth endpoints pubblici
+        http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/lyrics/{id}").permitAll()
+                .requestMatchers("/error").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/quiz/brani").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/quiz/testi").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/lyrics/song/**").permitAll()
-              //.requestMatchers(HttpMethod.GET, "/api/deezer/search").permitAll() // ✅ Per importare canzoni da frontend
-                // Endpoints protetti da ruolo USER o ADMIN
+                .requestMatchers(HttpMethod.GET, "/api/lyrics/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/songs/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/lyrics/fetch").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/quiz/brani/**").hasAnyRole("USER", "ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/quiz/testi/**").hasAnyRole("USER", "ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/lyrics/fetch").permitAll()
                 .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
-                // Tutto il resto richiede autenticazione
                 .anyRequest().authenticated()
         );
 
-        httpSecurity.addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
 
-        return httpSecurity.build();
+        return http.build();
     }
-
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-
-              "http://localhost:5173"
-
-        ));
-
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setExposedHeaders(List.of("Authorization"));
@@ -90,15 +86,11 @@ public class SecurityConfig {
         return source;
     }
 
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
     }
 
-
-
-    // NUOVO BEAN: Configurazione esplicita per il MultipartResolver
     @Bean
     public MultipartResolver multipartResolver() {
         return new StandardServletMultipartResolver();

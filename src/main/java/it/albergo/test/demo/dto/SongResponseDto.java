@@ -11,5 +11,6 @@ public class SongResponseDto {
     private String audioUrl;
     private String coverImageUrl;
     private String creatore;
+    private Long deezerId;
 }
 

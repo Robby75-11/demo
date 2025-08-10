@@ -9,27 +9,27 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/quiz")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+
 public class QuizController {
 
     private final QuizService quizService;
 
     // 🔹 Quiz su brani: "Chi canta questo brano?"
     @GetMapping("/brani")
-    public QuizDto generaQuizBrani(@RequestParam(defaultValue = "5") int numerodomande) {
-        return quizService.generaQuizBrani(numerodomande);
+    public QuizDto generaQuizBrani(@RequestParam(name= "numeroDomande", defaultValue = "5") int numeroDomande) {
+        return quizService.generaQuizBrani(numeroDomande);
     }
 
     // 🔹 Quiz su testi: "Quale canzone contiene questo testo?"
     @GetMapping("/testi")
-    public QuizDto generaQuizTesti(@RequestParam(defaultValue = "5") int numerodomande) {
-        return quizService.generaQuizTesti(numerodomande);
+    public QuizDto generaQuizTesti(@RequestParam(name = "numeroDomande",defaultValue = "5") int numeroDomande) {
+        return quizService.generaQuizTesti(numeroDomande);
     }
     // 🔹 Quiz su un singolo brano selezionato
     @GetMapping("/brani/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public QuizDto generaQuizDaBrano(@PathVariable Long id,
-                                     @RequestParam(defaultValue = "3") int numeroDomande) {
+                                     @RequestParam(name = "numeroDomande",defaultValue = "3") int numeroDomande) {
         return quizService.generaQuizDaBrano(id, numeroDomande);
     }
 }

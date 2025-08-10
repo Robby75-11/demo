@@ -1,5 +1,6 @@
 package it.albergo.test.demo.security;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import it.albergo.test.demo.model.User;
@@ -41,12 +42,29 @@ public class JwtTool {
                 .signWith(Keys.hmacShaKeyFor(chiaveSegreta.getBytes()))
                 .compact();
     }
+    // ✅ Metodo per verificare la validità del token
+    public boolean isTokenValid(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(Keys.hmacShaKeyFor(chiaveSegreta.getBytes()))
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
 
+            return claims.getExpiration().after(new Date());
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
-    //metodo per la verifica della validità del token
-    public void validateToken(String token){
-        Jwts.parser().verifyWith(Keys.hmacShaKeyFor(chiaveSegreta.getBytes())).
-                build().parse(token);
+    // ✅ Metodo per estrarre l'email (subject) dal token
+    public String getEmailFromToken(String token) {
+        return Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(chiaveSegreta.getBytes()))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
     }
 
     // ✅ NUOVO METODO: per estrarre lo username (email) dal token

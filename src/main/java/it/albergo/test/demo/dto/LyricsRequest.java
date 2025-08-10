@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class LyricsRequest {
     private Long deezerId;
-    private String titolo;
-    private String artista;
+    private String title;
+    private String artist;
 }

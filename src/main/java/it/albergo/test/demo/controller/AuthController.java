@@ -2,6 +2,8 @@ package it.albergo.test.demo.controller;
 
 import it.albergo.test.demo.dto.LoginRequest;
 import it.albergo.test.demo.dto.RegisterDto;
+import it.albergo.test.demo.model.User;
+import it.albergo.test.demo.repository.UserRepository;
 import it.albergo.test.demo.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +21,13 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest request) {
         String token = authService.login(request);
-        return ResponseEntity.ok(Map.of("token", token));
+        return ResponseEntity.ok(Map.of("token", token)); // JSON con chiave "token"
     }
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody @Valid RegisterDto registerDto) {
@@ -30,13 +35,15 @@ public class AuthController {
         return ResponseEntity.ok(token);
     }
     @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<User> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
-            return ResponseEntity.status(401).body("Utente non autenticato");
+            return ResponseEntity.status(401).build();
         }
 
-        return ResponseEntity.ok(userDetails);
+        return userRepository.findByEmail(userDetails.getUsername())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
-
 }
+
 

@@ -22,13 +22,19 @@ public class LyricsController {
     @PostMapping("/fetch")
     public ResponseEntity<?> fetchLyrics(@RequestBody LyricsRequest request) {
         try {
-            String lyrics = lyricsService.fetchAndSaveLyrics(request);
+            // ✅ Recupera la canzone dal Deezer ID
+            Song song = songService.getSongEntityByDeezerId(request.getDeezerId());
+            if (song == null) {
+                return ResponseEntity.status(404).body("Canzone non trovata");
+            }
+
+            // ✅ Usa Genius per scaricare e salvare il testo
+            Lyrics lyrics = lyricsService.fetchAndSaveLyricsFromGenius(song);
             return ResponseEntity.ok(lyrics);
+
         } catch (RuntimeException ex) {
-            // Ritorna errore 404 se non trovata
             return ResponseEntity.status(404).body("Lyrics non trovate: " + ex.getMessage());
         } catch (Exception ex) {
-            // Ritorna errore generico 500
             return ResponseEntity.status(500).body("Errore durante il fetch: " + ex.getMessage());
         }
     }
@@ -39,20 +45,28 @@ public class LyricsController {
     }
 
     @GetMapping("/song/{songId}")
-    public Lyrics getLyricsBySongId(@PathVariable Long songId) {
+    public ResponseEntity<?> getLyricsBySongId(@PathVariable Long songId) {
         try {
-            return lyricsService.getLyricsBySongId(songId);
-        } catch (RuntimeException e) {
-            // 🔁 Se non trovate, provo a fare fetch da API esterna
-            Song song = songService.getSongEntityById(songId);
-            LyricsRequest request = new LyricsRequest();
-            request.setArtista(song.getArtista().getNome());
-            request.setTitolo(song.getTitolo());
-            request.setDeezerId(song.getDeezerId());
-            lyricsService.fetchAndSaveLyrics(request);
+            // 1. Prova dal DB
+            Lyrics lyrics = lyricsService.getLyricsBySongId(songId);
+            return ResponseEntity.ok(lyrics);
 
-            // Riprovo dopo aver salvato
-            return lyricsService.getLyricsBySongId(songId);
+        } catch (RuntimeException e) {
+            try {
+                // 2. Recupera la canzone
+                Song song = songService.getSongEntityById(songId);
+
+                // 3. Scarica da Genius
+                lyricsService.fetchAndSaveLyricsFromGenius(song);
+
+                // 4. Riprova
+                Lyrics lyrics = lyricsService.getLyricsBySongId(songId);
+                return ResponseEntity.ok(lyrics);
+
+            } catch (Exception innerEx) {
+                return ResponseEntity.status(500)
+                        .body("❌ Errore durante il fetch dei lyrics: " + innerEx.getMessage());
+            }
         }
     }
 }
