@@ -29,7 +29,8 @@ public class LyricsService {
     private final SongRepository songRepository;
     private final RestTemplate restTemplate = new RestTemplate();
 
-
+    @Value("${genius.api.key}")
+    private String geniusApiKey;
 
     // --- CRUD semplici -------------------------------------------------------
     public List<Lyrics> getAllLyrics()       { return lyricsRepository.findAll(); }
@@ -64,6 +65,7 @@ public class LyricsService {
             String searchUrl = "https://api.genius.com/search?q=" + query;
 
             HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(geniusApiKey);
             headers.set(HttpHeaders.USER_AGENT, "Mozilla/5.0 (LyricsFetcher/1.0)");
             headers.set(HttpHeaders.ACCEPT, "application/json");
             HttpEntity<Void> entity = new HttpEntity<>(headers);
